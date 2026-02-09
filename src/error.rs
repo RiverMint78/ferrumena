@@ -27,6 +27,10 @@ pub enum FerrumenaError {
     /// 例如：.env 文件里没有设置 User-Agent
     #[error("配置缺失: {0}")]
     Config(String),
+
+    /// 6. 其他未知错误
+    #[error("未知错误: {0}")]
+    Unknown(String),
 }
 
 /// 项目统一使用 FerrumenaError 作为错误类型
