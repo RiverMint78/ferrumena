@@ -29,7 +29,7 @@ async fn main() -> error::Result<()> {
         .unwrap_or_else(|| "无限制 (全部)".to_string());
 
     println!(
-        "开始搜索: {}\n排序方式: {:?} ({:?})\n目标数量: {}\n每页抓取: {} 张",
+        "开始搜索: {}\n排序方式: {} ({:?})\n目标数量: {}\n每页抓取: {} 张",
         args.query,
         args.sort_field.to_api_string(),
         args.sort_direction,
