@@ -23,7 +23,11 @@ pub enum FerrumenaError {
     #[error("业务逻辑错误: {0}")]
     Logic(String),
 
-    /// 5. 其他未知错误
+    /// 5. 配置错误
+    #[error("配置错误: {0}")]
+    Config(String),
+
+    /// 6. 其他未知错误
     #[error("未知错误: {0}")]
     Unknown(String),
 }
