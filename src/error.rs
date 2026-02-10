@@ -23,12 +23,7 @@ pub enum FerrumenaError {
     #[error("业务逻辑错误: {0}")]
     Logic(String),
 
-    /// 5. 环境配置错误
-    /// 例如：.env 文件里没有设置 User-Agent
-    #[error("配置缺失: {0}")]
-    Config(String),
-
-    /// 6. 其他未知错误
+    /// 5. 其他未知错误
     #[error("未知错误: {0}")]
     Unknown(String),
 }
