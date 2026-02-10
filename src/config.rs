@@ -68,18 +68,26 @@ fn default_save_path() -> PathBuf {
 impl FerrumenaConfig {
     /// 加载： Default -> .env -> Environment
     pub fn load() -> Self {
-        // 1. 尝试加载 .env 文件（如果存在）
+        // 加载 .env 文件（如果存在）
         let _ = dotenvy::dotenv();
 
-        // 2. 尝试从环境变量（带 FERRUMENA_ 前缀）解析
-        // envy 字段自动匹配 FERRUMENA_<UPPER> -> <lower>
-        envy::prefixed("FERRUMENA_")
+        let mut config = envy::prefixed("FERRUMENA_")
             .from_env::<FerrumenaConfig>()
             .unwrap_or_else(|e| {
-                // 打印警告，使用默认值
-                eprintln!("警告: 环境变量解析部分失败 ({})，将使用默认配置。", e);
+                eprintln!("警告: 环境变量解析失败 ({})，将使用默认配置。", e);
                 Self::default()
-            })
+            });
+
+        // 不允许空 UA 和 空 URL
+        if config.user_agent.trim().is_empty() {
+            config.user_agent = default_user_agent();
+        }
+
+        if config.base_url.trim().is_empty() {
+            config.base_url = default_base_url();
+        }
+
+        config
     }
 }
 
