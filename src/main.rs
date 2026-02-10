@@ -1,19 +1,20 @@
-// 1. 声明模块
+mod api;
 mod config;
 mod error;
 
-// 2. 引入我们需要使用的类型
-use config::FerrumenaConfig;
+#[tokio::main]
+async fn main() -> error::Result<()> {
+    // 1. 加载配置
+    let cfg = config::FerrumenaConfig::load();
 
-fn main() {
-    let cfg = FerrumenaConfig::load();
+    // 2. 初始化客户端
+    let api_client = api::PhilomenaClient::new(cfg)?;
 
-    println!("--- Ferrumena 初始化测试 ---");
-    println!("目标站点: {}", cfg.base_url);
-    println!("过滤器ID: {}", cfg.filter_id);
-    println!("最大并发: {}", cfg.concurrency);
-    println!("RPS限制:  {}", cfg.rps);
-    println!("保存路径: {:?}", cfg.save_path);
-    println!("用户代理: {}", cfg.user_agent);
-    println!("Cookie: {}", cfg.cookie);
+    println!("客户端已就绪，目标站点：{}", api_client.config.base_url);
+
+    // 3. 测试抓取
+    let html = api_client.fetch_home().await?;
+    println!("抓取成功，HTML 长度: {}", html.len());
+
+    Ok(())
 }
