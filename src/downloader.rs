@@ -2,7 +2,7 @@ use crate::api::client::PhilomenaClient;
 use crate::api::models::DownloadTask;
 use crate::cli::Args;
 use std::collections::HashSet;
-// use std::path::PathBuf;
+use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::{Mutex, mpsc};
 
@@ -16,7 +16,7 @@ pub struct Downloader {
 impl Downloader {
     pub fn new(client: PhilomenaClient, args: Args) -> Self {
         // 扫描目录获取已有 ID
-        let existing_ids = Self::scan_existing_files();
+        let existing_ids = Self::scan_existing_files(&client.config.save_path);
 
         Self {
             client: Arc::new(client),
@@ -26,10 +26,36 @@ impl Downloader {
     }
 
     /// 扫描文件夹，提取已存在的图片 ID (防止重复下载)
-    fn scan_existing_files() -> HashSet<u32> {
-        // TODO: 遍历 FERRUMENA_SAVE_PATH
-        // 提取文件名中的 ID（例如 12345.png -> 12345）
-        HashSet::new()
+    fn scan_existing_files(save_path: &Path) -> HashSet<u32> {
+        // 遍历保存目录，提取文件名中的 ID（例如 12345.png -> 12345）
+        let mut ids = HashSet::new();
+
+        if !save_path.exists() {
+            return ids;
+        }
+
+        let entries = match std::fs::read_dir(save_path) {
+            Ok(e) => e,
+            Err(_) => return ids,
+        };
+
+        for entry in entries.flatten() {
+            if let Ok(ft) = entry.file_type() {
+                if !ft.is_file() {
+                    continue;
+                }
+            }
+
+            let file_name = entry.file_name();
+            let stem = Path::new(&file_name).file_stem().and_then(|s| s.to_str());
+            if let Some(stem) = stem {
+                if let Ok(id) = stem.parse::<u32>() {
+                    ids.insert(id);
+                }
+            }
+        }
+
+        ids
     }
 
     pub async fn run(self) -> Result<(), Box<dyn std::error::Error>> {
