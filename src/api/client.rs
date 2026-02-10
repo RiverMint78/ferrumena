@@ -1,5 +1,7 @@
+use crate::api::models::PageResponse;
 use crate::config::FerrumenaConfig;
 use crate::error::{FerrumenaError, Result};
+use crate::cli::Args;
 use reqwest::{Client, header};
 
 pub struct PhilomenaClient {
@@ -51,5 +53,14 @@ impl PhilomenaClient {
             .text()
             .await?;
         Ok(resp)
+    }
+
+    /// 获取搜索结果页（占位实现）
+    pub async fn fetch_page(&self, _page: u32, _args: &Args) -> Result<PageResponse> {
+        // TODO: 实现真实的 API/HTML 解析逻辑
+        Ok(PageResponse {
+            total: 0,
+            images: Vec::new(),
+        })
     }
 }
