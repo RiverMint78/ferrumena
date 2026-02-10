@@ -63,8 +63,6 @@ fn default_save_path() -> PathBuf {
     PathBuf::from("./downloads")
 }
 
-// --- 实现加载逻辑 ---
-
 impl FerrumenaConfig {
     /// 加载： Default -> .env -> Environment
     pub fn load() -> Self {
