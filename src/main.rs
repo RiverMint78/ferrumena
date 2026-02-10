@@ -2,6 +2,7 @@
 mod api;
 mod cli;
 mod config;
+mod downloader;
 mod error;
 use clap::Parser;
 

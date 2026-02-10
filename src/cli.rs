@@ -2,7 +2,7 @@ use clap::{Parser, ValueEnum};
 use rand::RngExt;
 use std::path::PathBuf;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(author, version, about = "Ferrumena: Philomena 异步下载器")]
 pub struct Args {
     /// 搜索句
