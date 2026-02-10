@@ -8,7 +8,7 @@ async fn main() -> error::Result<()> {
     // 1. 加载配置
     let cfg = config::FerrumenaConfig::load();
 
-    print!("{:#?}", cfg);
+    println!("{:#?}", cfg);
 
     // 2. 初始化客户端
     let api_client = match api::PhilomenaClient::new(cfg) {
@@ -20,8 +20,8 @@ async fn main() -> error::Result<()> {
     };
 
     match api_client.fetch_home().await {
-        Ok(html) => print!("{:#?}", html),
-        Err(e) => eprint!("{:#?}", e),
+        Ok(html) => println!("{:#?}", html.len()),
+        Err(e) => eprintln!("{:#?}", e),
     }
 
     Ok(())
