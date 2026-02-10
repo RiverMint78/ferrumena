@@ -21,10 +21,6 @@ async fn main() -> error::Result<()> {
         .limit
         .map(|l| format!("{} 张", l))
         .unwrap_or_else(|| "无限制 (全部)".to_string());
-    let limit_display = args
-        .limit
-        .map(|l| format!("{} 张", l))
-        .unwrap_or_else(|| "无限制 (全部)".to_string());
 
     println!(
         "开始搜索: {}\n排序方式: {} ({:?})\n目标数量: {}\n每页抓取: {} 张",
