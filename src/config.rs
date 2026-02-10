@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use std::path::PathBuf;
 
+use crate::cli;
+
 /// Ferrumena 的核心配置结构体
 #[derive(Debug, Deserialize)]
 pub struct FerrumenaConfig {
@@ -69,23 +71,47 @@ impl FerrumenaConfig {
         // 加载 .env 文件（如果存在）
         let _ = dotenvy::dotenv();
 
-        let mut config = envy::prefixed("FERRUMENA_")
+        envy::prefixed("FERRUMENA_")
             .from_env::<FerrumenaConfig>()
             .unwrap_or_else(|e| {
                 eprintln!("警告: 环境变量解析失败 ({})，将使用默认配置。", e);
                 Self::default()
-            });
+            })
+    }
+
+    /// 应用命令行参数覆盖
+    pub fn merge_with_cli(mut self, args: &cli::Args) -> Self {
+        if let Some(ref url) = args.base_url {
+            self.base_url = url.clone();
+        }
+        if let Some(id) = args.filter_id {
+            self.filter_id = id;
+        }
+        if let Some(ref ua) = args.user_agent {
+            self.user_agent = ua.clone();
+        }
+        if let Some(ref ck) = args.cookie {
+            self.cookie = ck.clone();
+        }
+        if let Some(r) = args.rps {
+            self.rps = r;
+        }
+        if let Some(c) = args.concurrency {
+            self.concurrency = c;
+        }
+        if let Some(ref p) = args.save_path {
+            self.save_path = p.clone();
+        }
 
         // 不允许空 UA 和 空 URL
-        if config.user_agent.trim().is_empty() {
-            config.user_agent = default_user_agent();
+        if self.user_agent.trim().is_empty() {
+            self.user_agent = default_user_agent();
+        }
+        if self.base_url.trim().is_empty() {
+            self.base_url = default_base_url();
         }
 
-        if config.base_url.trim().is_empty() {
-            config.base_url = default_base_url();
-        }
-
-        config
+        self
     }
 }
 
