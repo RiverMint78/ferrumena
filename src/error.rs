@@ -20,15 +20,15 @@ pub enum FerrumenaError {
 
     /// 4. 业务逻辑错误
     /// 例如：图片已被删除、该 ID 不存在、或者触发了 404 等
-    #[error("业务逻辑错误: {0:#?}")]
+    #[error("业务逻辑错误: {0}")]
     Logic(String),
 
     /// 5. 配置错误
-    #[error("配置错误: {0:#?}")]
+    #[error("配置错误: {0}")]
     Config(String),
 
     /// 6. 其他未知错误
-    #[error("未知错误: {0:#?}")]
+    #[error("未知错误: {0}")]
     Unknown(String),
 }
 
