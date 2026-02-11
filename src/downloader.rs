@@ -1,6 +1,6 @@
-use crate::api::client::PhilomenaClient;
 use crate::api::models::DownloadTask;
 use crate::cli::Args;
+use crate::{api::client::PhilomenaClient, error::FerrumenaError};
 use std::collections::HashSet;
 use std::path::Path;
 use std::sync::Arc;
@@ -14,48 +14,40 @@ pub struct Downloader {
 }
 
 impl Downloader {
-    pub fn new(client: PhilomenaClient, args: Args) -> Self {
-        // 扫描目录获取已有 ID
-        let existing_ids = Self::scan_existing_files(&client.config.save_path);
+    pub fn new(client: PhilomenaClient, args: Args) -> Result<Self, FerrumenaError> {
+        // 递归路径创建
+        let save_path = &client.config.save_path;
+        std::fs::create_dir_all(save_path)?;
 
-        Self {
+        // 扫描目录获取已有 ID
+        let existing_ids = Self::scan_existing_files(save_path);
+        Ok(Self {
             client: Arc::new(client),
             args,
             existing_ids: Arc::new(existing_ids),
-        }
+        })
     }
 
-    /// 扫描文件夹，提取已存在的图片 ID (防止重复下载)
+    /// 扫描文件夹，提取已存在的图片 ID
     fn scan_existing_files(save_path: &Path) -> HashSet<u32> {
-        // 遍历保存目录，提取文件名中的 ID（例如 12345.png -> 12345）
-        let mut ids = HashSet::new();
-
-        if !save_path.exists() {
-            return ids;
-        }
-
         let entries = match std::fs::read_dir(save_path) {
-            Ok(e) => e,
-            Err(_) => return ids,
+            Ok(en) => en,
+            Err(err) => {
+                println!("读取路径 {} 出错：{}", save_path.display(), err);
+                return HashSet::new();
+            }
         };
-
-        for entry in entries.flatten() {
-            if let Ok(ft) = entry.file_type() {
-                if !ft.is_file() {
-                    continue;
-                }
-            }
-
-            let file_name = entry.file_name();
-            let stem = Path::new(&file_name).file_stem().and_then(|s| s.to_str());
-            if let Some(stem) = stem {
-                if let Ok(id) = stem.parse::<u32>() {
-                    ids.insert(id);
-                }
-            }
-        }
-
-        ids
+        entries
+            .flatten()
+            .filter(|entry| {
+                // 只保留文件
+                entry.file_type().map(|ft| ft.is_file()).unwrap_or(false)
+            })
+            .filter_map(|entry| {
+                // 获取文件名 -> 获取主名 -> 转换字符串 -> 解析数字
+                entry.path().file_stem()?.to_str()?.parse::<u32>().ok()
+            })
+            .collect()
     }
 
     pub async fn run(self) -> Result<(), Box<dyn std::error::Error>> {
