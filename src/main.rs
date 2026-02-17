@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 mod api;
 mod cli;
 mod config;

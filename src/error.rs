@@ -27,9 +27,9 @@ pub enum FerrumenaError {
     #[error("❓  配置错误: {0}")]
     Config(String),
 
-    /// 6. 其他未知错误
-    #[error("❓  未知错误: {0}")]
-    Unknown(String),
+    // /// 6. 其他未知错误
+    // #[error("❓  未知错误: {0}")]
+    // Unknown(String),
 }
 
 /// 项目统一使用 FerrumenaError 作为错误类型
