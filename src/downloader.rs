@@ -131,13 +131,25 @@ impl Downloader {
             let client_cc = Arc::clone(&client_c);
 
             let handle = tokio::spawn(async move {
-                while let Some(task) = {
-                    let mut lock = rx_c.lock().await;
-                    lock.recv().await
-                } {
+                loop {
+                    // 从 channel 接收任务
+                    let task = {
+                        let mut lock = rx_c.lock().await;
+                        lock.recv().await
+                    };
+
+                    // 如果 channel 已关闭，退出循环
+                    let task = match task {
+                        Some(t) => t,
+                        None => {
+                            println!("✅ Worker {} 完成所有任务，退出", i);
+                            break;
+                        }
+                    };
+
                     // 1. 检查去重
                     if existing_ids_c.contains(&task.id) {
-                        println!("⏭️ Worker {} 跳过已存在: ID {}", i, task.id);
+                        println!("⏭️  Worker {} 跳过已存在: ID {}", i, task.id);
                         continue;
                     }
 
@@ -153,15 +165,15 @@ impl Downloader {
                                     i, file_name, task.id
                                 ),
                                 Err(e) => eprintln!(
-                                    "⚠️ Worker {} 保存文件失败: {} - {:#?}",
+                                    "⚠️  Worker {} 保存文件失败: {} - {:#?}",
                                     i, file_name, e
                                 ),
                             },
                             Err(e) => {
-                                eprintln!("⚠️ Worker {} 读取响应失败: {} - {:#?}", i, file_name, e)
+                                eprintln!("⚠️  Worker {} 读取响应失败: {} - {:#?}", i, file_name, e)
                             }
                         },
-                        Err(e) => eprintln!("⚠️ Worker {} 下载失败: {} - {:#?}", i, file_name, e),
+                        Err(e) => eprintln!("⚠️  Worker {} 下载失败: {} - {:#?}", i, file_name, e),
                     }
                 }
             });
