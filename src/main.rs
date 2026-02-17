@@ -14,12 +14,10 @@ async fn main() -> error::Result<()> {
     let cfg = cfg.merge_with_cli(&args);
 
     // 打印配置信息
-    println!("\n================================================================\n");
-    println!(
-        "       🦄 Ferrumena v{} - Philomena 下载器, built with 🦀",
-        env!("CARGO_PKG_VERSION")
-    );
-    println!("\n================================================================\n");
+    println!("================================================================");
+    println!("               🦄 Ferrumena v{}", env!("CARGO_PKG_VERSION"));
+    println!("        异步 Philomena 图片下载器, built with 🦀");
+    println!("================================================================\n");
 
     println!("🔧 运行配置");
     println!("  ├─ 🌐 目标站点: {}", cfg.base_url);
