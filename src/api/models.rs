@@ -7,13 +7,14 @@ pub struct DownloadTask {
     pub file_ext: String,
 }
 
-/// 单页图片数据（占位）
+/// 单页图片数据
 pub struct PageResponse {
-    pub total: u32,
+    /// 总数，仅在 page=1 时提取，否则为 None
+    pub total: Option<u32>,
     pub images: Vec<ImageItem>,
 }
 
-/// 图片条目（占位）
+/// 图片条目
 pub struct ImageItem {
     pub id: u32,
     pub representations: HashMap<String, String>,
