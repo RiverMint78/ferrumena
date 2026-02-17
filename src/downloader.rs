@@ -33,7 +33,7 @@ impl Downloader {
         let entries = match std::fs::read_dir(save_path) {
             Ok(en) => en,
             Err(err) => {
-                println!("读取路径 {} 出错：{}", save_path.display(), err);
+                println!("❓ 读取路径 {} 出错：{}", save_path.display(), err);
                 return HashSet::new();
             }
         };
@@ -53,7 +53,9 @@ impl Downloader {
     pub async fn run(self) -> Result<()> {
         // 确定抓取范围
         let first_page = self.client.fetch_page(1, &self.args).await?;
-        let total_images = first_page.total;
+        let total_images = first_page.total.ok_or_else(|| {
+            crate::error::FerrumenaError::Logic("第一页未获取到总数信息".to_string())
+        })?;
 
         // 计算实际需要抓取的图片总数
         let target_count = match self.args.limit {
@@ -104,12 +106,12 @@ impl Downloader {
                     Err(e) => {
                         failure_count += 1;
                         println!(
-                            "⚠️  页面 {} 抓取失败: {:#?} ({}/{})",
+                            "⚠️ 页面 {} 抓取失败: {:#?} ({}/{})",
                             page, e, failure_count, max_failures
                         );
 
                         if failure_count >= max_failures {
-                            eprintln!("❌ 连续失败 {} 次，停止爬取页面 No.{}", max_failures, page);
+                            println!("❌ 连续失败 {} 次，停止爬取页面 No.{}", max_failures, page);
                             break;
                         }
                     }
@@ -135,7 +137,7 @@ impl Downloader {
                 } {
                     // 1. 检查去重
                     if existing_ids_c.contains(&task.id) {
-                        println!("⏭️  Worker {} 跳过已存在: ID {}", i, task.id);
+                        println!("⏭️ Worker {} 跳过已存在: ID {}", i, task.id);
                         continue;
                     }
 
