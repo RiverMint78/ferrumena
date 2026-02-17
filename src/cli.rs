@@ -1,5 +1,6 @@
 use clap::{Parser, ValueEnum};
 use rand::RngExt;
+use std::fmt;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug, Clone)]
@@ -107,4 +108,13 @@ impl SortField {
 pub enum SortOrder {
     Asc,
     Desc,
+}
+
+impl fmt::Display for SortOrder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SortOrder::Asc => write!(f, "asc"),
+            SortOrder::Desc => write!(f, "desc"),
+        }
+    }
 }
