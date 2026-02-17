@@ -6,7 +6,7 @@ use crate::cli;
 /// Ferrumena 的核心配置结构体
 #[derive(Debug, Deserialize)]
 pub struct FerrumenaConfig {
-    /// 目标站点，默认 https://trixiebooru.org/
+    /// 目标站点，默认 <https://trixiebooru.org>
     #[serde(default = "default_base_url")]
     pub base_url: String,
 
@@ -58,7 +58,7 @@ fn default_rps() -> u32 {
 }
 
 fn default_concurrency() -> u32 {
-    4
+    32
 }
 
 fn default_save_path() -> PathBuf {

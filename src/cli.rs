@@ -1,13 +1,14 @@
 use clap::{Parser, ValueEnum};
 use rand::RngExt;
+use std::fmt;
 use std::path::PathBuf;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[command(author, version, about = "Ferrumena: Philomena 异步下载器")]
 pub struct Args {
     /// 搜索句
     /// (例: "pony OR safe")
-    /// 搜索句法请参考：https://trixiebooru.org/pages/search_syntax
+    /// 搜索句法请参考：<https://trixiebooru.org/pages/search_syntax>
     #[arg(short, long, default_value = "safe")]
     pub query: String,
 
@@ -33,31 +34,31 @@ pub struct Args {
     #[arg(short, long)]
     pub limit: Option<u32>,
 
-    /// [ENV] 目标站点 URL
+    /// 目标站点 URL
     #[arg(long)]
     pub base_url: Option<String>,
 
-    /// [ENV] 过滤器 ID
+    /// 过滤器 ID
     #[arg(long)]
     pub filter_id: Option<u32>,
 
-    /// [ENV] 用户代理 UA
+    /// 用户代理 UA
     #[arg(long, visible_alias = "ua")]
     pub user_agent: Option<String>,
 
-    /// [ENV] Cookie 字符串
+    /// Cookie 字符串
     #[arg(long)]
     pub cookie: Option<String>,
 
-    /// [ENV] 每秒请求数 (RPS)
+    /// 每秒请求数 (RPS)
     #[arg(short, long)]
     pub rps: Option<u32>,
 
-    /// [ENV] 并发下载任务数
+    /// 并发下载任务数
     #[arg(short, long)]
     pub concurrency: Option<u32>,
 
-    /// [ENV] 文件保存路径
+    /// 文件保存路径
     #[arg(short = 'o', long)]
     pub save_path: Option<PathBuf>,
 }
@@ -107,4 +108,13 @@ impl SortField {
 pub enum SortOrder {
     Asc,
     Desc,
+}
+
+impl fmt::Display for SortOrder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SortOrder::Asc => write!(f, "asc"),
+            SortOrder::Desc => write!(f, "desc"),
+        }
+    }
 }
