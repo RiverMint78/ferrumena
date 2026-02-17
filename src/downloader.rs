@@ -14,13 +14,13 @@ pub struct Downloader {
 }
 
 impl Downloader {
-    pub fn new(client: PhilomenaClient, args: Args) -> Result<Self> {
+    pub async fn new(client: PhilomenaClient, args: Args) -> Result<Self> {
         // 递归路径创建
-        let save_path = &client.config.save_path;
-        std::fs::create_dir_all(save_path)?;
+        let save_path = client.config.save_path.clone();
+        tokio::fs::create_dir_all(&save_path).await?;
 
         // 扫描目录获取已有 ID
-        let existing_ids = Self::scan_existing_files(save_path);
+        let existing_ids = Self::scan_existing_files(&save_path).await;
         Ok(Self {
             client: Arc::new(client),
             args,
@@ -29,25 +29,34 @@ impl Downloader {
     }
 
     /// 扫描文件夹，提取已存在的图片 ID
-    fn scan_existing_files(save_path: &Path) -> HashSet<u32> {
-        let entries = match std::fs::read_dir(save_path) {
+    async fn scan_existing_files(save_path: &Path) -> HashSet<u32> {
+        let mut entries = match tokio::fs::read_dir(save_path).await {
             Ok(en) => en,
             Err(err) => {
                 println!("❓  读取路径 {} 出错：{}", save_path.display(), err);
                 return HashSet::new();
             }
         };
-        entries
-            .flatten()
-            .filter(|entry| {
-                // 只保留文件
-                entry.file_type().map(|ft| ft.is_file()).unwrap_or(false)
-            })
-            .filter_map(|entry| {
-                // 获取文件名 -> 获取主名 -> 转换字符串 -> 解析数字
-                entry.path().file_stem()?.to_str()?.parse::<u32>().ok()
-            })
-            .collect()
+
+        let mut ids = HashSet::new();
+        while let Ok(Some(entry)) = entries.next_entry().await {
+            // 只保留文件
+            if let Ok(file_type) = entry.file_type().await {
+                if !file_type.is_file() {
+                    continue;
+                }
+            }
+
+            // 获取文件名 -> 获取主名 -> 转换字符串 -> 解析数字
+            if let Some(file_stem) = entry.path().file_stem() {
+                if let Some(id_str) = file_stem.to_str() {
+                    if let Ok(id) = id_str.parse::<u32>() {
+                        ids.insert(id);
+                    }
+                }
+            }
+        }
+        ids
     }
 
     pub async fn run(self) -> Result<()> {
@@ -160,7 +169,7 @@ impl Downloader {
 
                     match client_cc.client.get(&task.url).send().await {
                         Ok(resp) => match resp.bytes().await {
-                            Ok(bytes) => match std::fs::write(&file_path, bytes) {
+                            Ok(bytes) => match tokio::fs::write(&file_path, bytes).await {
                                 Ok(_) => println!(
                                     "💾  Worker {} 下载完成: {} (ID: {})",
                                     i, file_name, task.id

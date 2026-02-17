@@ -79,7 +79,7 @@ async fn main() -> error::Result<()> {
 
     // 启动下载器
     println!("\n🚀 正在启动下载引擎...");
-    let downloader = match Downloader::new(api_client, args) {
+    let downloader = match Downloader::new(api_client, args).await {
         Ok(dl) => {
             println!("   ✅ 下载器初始化完成");
             dl
