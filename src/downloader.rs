@@ -1,6 +1,6 @@
 use crate::api::models::DownloadTask;
 use crate::cli::Args;
-use crate::{api::client::PhilomenaClient, error::FerrumenaError};
+use crate::{api::client::PhilomenaClient, error::Result};
 use std::collections::HashSet;
 use std::path::Path;
 use std::sync::Arc;
@@ -14,7 +14,7 @@ pub struct Downloader {
 }
 
 impl Downloader {
-    pub fn new(client: PhilomenaClient, args: Args) -> Result<Self, FerrumenaError> {
+    pub fn new(client: PhilomenaClient, args: Args) -> Result<Self> {
         // 递归路径创建
         let save_path = &client.config.save_path;
         std::fs::create_dir_all(save_path)?;
@@ -50,7 +50,7 @@ impl Downloader {
             .collect()
     }
 
-    pub async fn run(self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run(self) -> Result<()> {
         // 确定抓取范围
         let first_page = self.client.fetch_page(1, &self.args).await?;
         let total_images = first_page.total;
@@ -65,11 +65,11 @@ impl Downloader {
         let per_page = self.args.per_page;
         let total_pages = (target_count + per_page - 1) / per_page;
 
-        println!("计划抓取 {} 张图片，共 {} 页", target_count, total_pages);
+        println!("ℹ️ 计划抓取 {} 张图片，共 {} 页", target_count, total_pages);
 
         // 建立通信管道
         // mpsc 通道：Page Worker 生产图片链接，Image Worker 消费
-        let (tx, rx) = mpsc::channel::<DownloadTask>(100);
+        let (tx, rx) = mpsc::channel::<DownloadTask>(256);
         let rx = Arc::new(Mutex::new(rx));
 
         // 启动并行任务
@@ -80,33 +80,53 @@ impl Downloader {
         let args_c = self.args.clone();
         let tx_c = tx.clone();
         let page_handle = tokio::spawn(async move {
+            let mut failure_count = 0;
+            let max_failures = 5;
+
             for page in 1..=total_pages {
-                if let Ok(resp) = client_c.fetch_page(page, &args_c).await {
-                    for img in resp.images {
-                        let task = DownloadTask {
-                            id: img.id,
-                            url: img
-                                .representations
-                                .get("full")
-                                .cloned()
-                                .unwrap_or(img.view_url),
-                            file_ext: img.format,
-                        };
-                        let _ = tx_c.send(task).await;
+                match client_c.fetch_page(page, &args_c).await {
+                    Ok(resp) => {
+                        failure_count = 0; // 成功, 重置计数
+
+                        for img in resp.images {
+                            let task = DownloadTask {
+                                id: img.id,
+                                url: img
+                                    .representations
+                                    .get("full")
+                                    .cloned()
+                                    .unwrap_or(img.view_url),
+                                file_ext: img.format,
+                            };
+                            let _ = tx_c.send(task).await;
+                        }
                     }
-                } else {
-                    // TODO: 累计失败限度逻辑
+                    Err(e) => {
+                        failure_count += 1;
+                        println!(
+                            "⚠️  页面 {} 抓取失败: {:#?} ({}/{})",
+                            page, e, failure_count, max_failures
+                        );
+
+                        if failure_count >= max_failures {
+                            eprintln!("❌ 连续失败 {} 次，停止爬取页面 No.{}", max_failures, page);
+                            break;
+                        }
+                    }
                 }
             }
             drop(tx_c); // 生产者关闭
         });
         worker_handles.push(page_handle);
 
-        // B. 图片下载任务 (启动多个并发 Worker)
-        let concurrency = 4; // 可从配置读取
+        // B. 图片下载任务
+        let concurrency = self.client.config.concurrency;
+        let client_c = Arc::clone(&self.client);
+
         for i in 0..concurrency {
             let rx_c = Arc::clone(&rx);
             let existing_ids_c = Arc::clone(&self.existing_ids);
+            let client_cc = Arc::clone(&client_c);
 
             let handle = tokio::spawn(async move {
                 while let Some(task) = {
@@ -115,13 +135,32 @@ impl Downloader {
                 } {
                     // 1. 检查去重
                     if existing_ids_c.contains(&task.id) {
+                        println!("⏭️  Worker {} 跳过已存在: ID {}", i, task.id);
                         continue;
                     }
 
                     // 2. 执行下载
-                    println!("Worker {} 正在下载 ID: {}", i, task.id);
-                    // TODO: 调用 reqwest 下载并保存
-                    // if fails > limit { break; }
+                    let file_name = format!("{}.{}", task.id, task.file_ext);
+                    let file_path = client_cc.config.save_path.join(&file_name);
+
+                    match client_cc.client.get(&task.url).send().await {
+                        Ok(resp) => match resp.bytes().await {
+                            Ok(bytes) => match std::fs::write(&file_path, bytes) {
+                                Ok(_) => println!(
+                                    "💾 Worker {} 下载完成: {} (ID: {})",
+                                    i, file_name, task.id
+                                ),
+                                Err(e) => eprintln!(
+                                    "⚠️ Worker {} 保存文件失败: {} - {:#?}",
+                                    i, file_name, e
+                                ),
+                            },
+                            Err(e) => {
+                                eprintln!("⚠️ Worker {} 读取响应失败: {} - {:#?}", i, file_name, e)
+                            }
+                        },
+                        Err(e) => eprintln!("⚠️ Worker {} 下载失败: {} - {:#?}", i, file_name, e),
+                    }
                 }
             });
             worker_handles.push(handle);
