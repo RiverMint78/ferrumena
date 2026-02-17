@@ -33,7 +33,7 @@ impl Downloader {
         let entries = match std::fs::read_dir(save_path) {
             Ok(en) => en,
             Err(err) => {
-                println!("❓ 读取路径 {} 出错：{}", save_path.display(), err);
+                println!("❓  读取路径 {} 出错：{}", save_path.display(), err);
                 return HashSet::new();
             }
         };
@@ -67,7 +67,7 @@ impl Downloader {
         let per_page = self.args.per_page;
         let total_pages = (target_count + per_page - 1) / per_page;
 
-        println!("ℹ️ 计划抓取 {} 张图片，共 {} 页", target_count, total_pages);
+        println!("ℹ️  计划抓取 {} 张图片，共 {} 页", target_count, total_pages);
 
         // 建立通信管道
         // mpsc 通道：Page Worker 生产图片链接，Image Worker 消费
@@ -107,12 +107,12 @@ impl Downloader {
                     Err(e) => {
                         failure_count += 1;
                         println!(
-                            "⚠️ 页面 {} 抓取失败: {:#?} ({}/{})",
+                            "⚠️  页面 {} 抓取失败: {:#?} ({}/{})",
                             page, e, failure_count, max_failures
                         );
 
                         if failure_count >= max_failures {
-                            println!("❌ 连续失败 {} 次，停止爬取页面 No.{}", max_failures, page);
+                            println!("❌  连续失败 {} 次，停止爬取页面 No.{}", max_failures, page);
                             break;
                         }
                     }
@@ -143,7 +143,7 @@ impl Downloader {
                     let task = match task {
                         Some(t) => t,
                         None => {
-                            // println!("✅ Worker {} 完成所有任务，退出", i);
+                            // println!("✅  Worker {} 完成所有任务，退出", i);
                             break;
                         }
                     };
@@ -162,7 +162,7 @@ impl Downloader {
                         Ok(resp) => match resp.bytes().await {
                             Ok(bytes) => match std::fs::write(&file_path, bytes) {
                                 Ok(_) => println!(
-                                    "💾 Worker {} 下载完成: {} (ID: {})",
+                                    "💾  Worker {} 下载完成: {} (ID: {})",
                                     i, file_name, task.id
                                 ),
                                 Err(e) => eprintln!(
