@@ -58,7 +58,7 @@ fn default_rps() -> u32 {
 }
 
 fn default_concurrency() -> u32 {
-    4
+    32
 }
 
 fn default_save_path() -> PathBuf {
