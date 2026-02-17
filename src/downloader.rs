@@ -81,6 +81,7 @@ impl Downloader {
         let client_c = Arc::clone(&self.client);
         let args_c = self.args.clone();
         let tx_c = tx.clone();
+        drop(tx); // 立即 drop 原始 tx，只保留 tx_c
         let page_handle = tokio::spawn(async move {
             let mut failure_count = 0;
             let max_failures = 5;
@@ -142,7 +143,7 @@ impl Downloader {
                     let task = match task {
                         Some(t) => t,
                         None => {
-                            println!("✅ Worker {} 完成所有任务，退出", i);
+                            // println!("✅ Worker {} 完成所有任务，退出", i);
                             break;
                         }
                     };
