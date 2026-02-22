@@ -58,11 +58,11 @@ fn default_rps() -> u32 {
 }
 
 fn default_concurrency() -> u32 {
-    32
+    64
 }
 
 fn default_save_path() -> PathBuf {
-    PathBuf::from("./downloads")
+    PathBuf::from("./ferrumena_downloads")
 }
 
 impl FerrumenaConfig {
@@ -74,7 +74,7 @@ impl FerrumenaConfig {
         envy::prefixed("FERRUMENA_")
             .from_env::<FerrumenaConfig>()
             .unwrap_or_else(|e| {
-                eprintln!("警告: 环境变量解析失败 ({})，将使用默认配置。", e);
+                eprintln!("⚠️  环境变量解析失败 ({})，将使用默认配置。", e);
                 Self::default()
             })
     }

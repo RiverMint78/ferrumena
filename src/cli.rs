@@ -6,10 +6,10 @@ use std::path::PathBuf;
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about = "Ferrumena: Philomena 异步下载器")]
 pub struct Args {
-    /// 搜索句
+    /// 搜索句（必填）
     /// (例: "pony OR safe")
     /// 搜索句法请参考：<https://trixiebooru.org/pages/search_syntax>
-    #[arg(short, long, default_value = "safe")]
+    #[arg(short, long, allow_hyphen_values = true)]
     pub query: String,
 
     /// 排序字段
@@ -111,7 +111,7 @@ pub enum SortOrder {
 }
 
 impl fmt::Display for SortOrder {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             SortOrder::Asc => write!(f, "asc"),
             SortOrder::Desc => write!(f, "desc"),
