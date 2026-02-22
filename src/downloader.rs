@@ -90,10 +90,10 @@ impl Downloader {
         let client_c = Arc::clone(&self.client);
         let args_c = self.args.clone();
         let tx_c = tx.clone();
+        let max_failures = self.client.config.max_failures;
         drop(tx); // 立即 drop 原始 tx，只保留 tx_c
         let page_handle = tokio::spawn(async move {
-            let mut failure_count = 0;
-            let max_failures = 5;
+            let mut failure_count: u32 = 0;
 
             for page in 1..=total_pages {
                 match client_c.fetch_page(page, &args_c).await {

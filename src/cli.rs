@@ -58,6 +58,10 @@ pub struct Args {
     #[arg(short, long)]
     pub concurrency: Option<u32>,
 
+    /// 页面抓取连续失败上限
+    #[arg(long)]
+    pub max_failures: Option<u32>,
+
     /// 文件保存路径
     #[arg(short = 'o', long)]
     pub save_path: Option<PathBuf>,

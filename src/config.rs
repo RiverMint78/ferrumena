@@ -30,6 +30,10 @@ pub struct FerrumenaConfig {
     #[serde(default = "default_concurrency")]
     pub concurrency: u32,
 
+    /// 页面抓取连续失败上限
+    #[serde(default = "default_max_failures")]
+    pub max_failures: u32,
+
     /// 文件保存路径
     #[serde(default = "default_save_path")]
     pub save_path: PathBuf,
@@ -59,6 +63,10 @@ fn default_rps() -> u32 {
 
 fn default_concurrency() -> u32 {
     64
+}
+
+fn default_max_failures() -> u32 {
+    5
 }
 
 fn default_save_path() -> PathBuf {
@@ -99,6 +107,9 @@ impl FerrumenaConfig {
         if let Some(c) = args.concurrency {
             self.concurrency = c;
         }
+        if let Some(m) = args.max_failures {
+            self.max_failures = m;
+        }
         if let Some(ref p) = args.save_path {
             self.save_path = p.clone();
         }
@@ -125,6 +136,7 @@ impl Default for FerrumenaConfig {
             cookie: String::new(),
             rps: default_rps(),
             concurrency: default_concurrency(),
+            max_failures: default_max_failures(),
             save_path: default_save_path(),
         }
     }
