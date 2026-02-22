@@ -1,6 +1,7 @@
 use crate::api::models::DownloadTask;
 use crate::cli::Args;
 use crate::{api::client::PhilomenaClient, error::Result};
+use crate::utils::compact_url_for_log;
 use std::collections::HashSet;
 use std::path::Path;
 use std::sync::Arc;
@@ -76,7 +77,10 @@ impl Downloader {
         let per_page = self.args.per_page;
         let total_pages = (target_count + per_page - 1) / per_page;
 
-        println!("ℹ️  计划抓取 {} 张图片，共 {} 页", target_count, total_pages);
+        println!(
+            "ℹ️  计划抓取 {} 张图片，共 {} 页",
+            target_count, total_pages
+        );
 
         // 建立通信管道
         // mpsc 通道：Page Worker 生产图片链接，Image Worker 消费
@@ -91,6 +95,7 @@ impl Downloader {
         let args_c = self.args.clone();
         let tx_c = tx.clone();
         let max_failures = self.client.config.max_failures;
+        let representation = self.client.config.representation.clone();
         drop(tx); // 立即 drop 原始 tx，只保留 tx_c
         let page_handle = tokio::spawn(async move {
             let mut failure_count: u32 = 0;
@@ -101,13 +106,22 @@ impl Downloader {
                         failure_count = 0; // 成功, 重置计数
 
                         for img in resp.images {
+                            let url = if let Some(url) =
+                                img.representations.get(representation.as_str()).cloned()
+                            {
+                                url
+                            } else {
+                                let compact_view_url = compact_url_for_log(&img.view_url);
+                                println!(
+                                    "⚠️  图片 ID {} 不存在 representation='{}'，已回退到 view_url: {}",
+                                    img.id, representation, compact_view_url
+                                );
+                                img.view_url.clone()
+                            };
+
                             let task = DownloadTask {
                                 id: img.id,
-                                url: img
-                                    .representations
-                                    .get("full")
-                                    .cloned()
-                                    .unwrap_or(img.view_url),
+                                url,
                                 file_ext: img.format,
                             };
                             let _ = tx_c.send(task).await;
@@ -151,10 +165,7 @@ impl Downloader {
                     // 如果 channel 已关闭，退出循环
                     let task = match task {
                         Some(t) => t,
-                        None => {
-                            // println!("✅  Worker {} 完成所有任务，退出", i);
-                            break;
-                        }
+                        None => break,
                     };
 
                     // 1. 检查去重
@@ -174,16 +185,16 @@ impl Downloader {
                                     "💾  Worker {} 下载完成: {} (ID: {})",
                                     i, file_name, task.id
                                 ),
-                                Err(e) => eprintln!(
+                                Err(e) => println!(
                                     "⚠️  Worker {} 保存文件失败: {} - {:#?}",
                                     i, file_name, e
                                 ),
                             },
                             Err(e) => {
-                                eprintln!("⚠️  Worker {} 读取响应失败: {} - {:#?}", i, file_name, e)
+                                println!("⚠️  Worker {} 读取响应失败: {} - {:#?}", i, file_name, e)
                             }
                         },
-                        Err(e) => eprintln!("⚠️  Worker {} 下载失败: {} - {:#?}", i, file_name, e),
+                        Err(e) => println!("⚠️  Worker {} 下载失败: {} - {:#?}", i, file_name, e),
                     }
                 }
             });

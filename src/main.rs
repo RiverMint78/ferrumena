@@ -3,6 +3,7 @@ mod cli;
 mod config;
 mod downloader;
 mod error;
+mod utils;
 use clap::Parser;
 use downloader::Downloader;
 
