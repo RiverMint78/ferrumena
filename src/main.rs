@@ -3,6 +3,7 @@ mod cli;
 mod config;
 mod downloader;
 mod error;
+mod utils;
 use clap::Parser;
 use downloader::Downloader;
 
@@ -32,7 +33,9 @@ async fn main() -> error::Result<()> {
     println!("\n⚙️  性能参数");
     println!("  ├─ 📄 每页图片: {} 张", args.per_page);
     println!("  ├─ 🚀 下载并发: {} Workers", cfg.concurrency);
-    println!("  └─ ⚡ 爬页限速: {} 请求/秒", cfg.rps);
+    println!("  ├─ ⚡ 爬页限速: {} 请求/秒", cfg.rps);
+    println!("  ├─ 🧱 连续失败上限: {} 次", cfg.max_failures);
+    println!("  └─ 🖼️ 图片质量级别: {}", cfg.representation);
 
     println!("\n💾 存储设置");
     let limit_display = args

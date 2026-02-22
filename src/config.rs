@@ -30,6 +30,14 @@ pub struct FerrumenaConfig {
     #[serde(default = "default_concurrency")]
     pub concurrency: u32,
 
+    /// 页面抓取连续失败上限
+    #[serde(default = "default_max_failures")]
+    pub max_failures: u32,
+
+    /// 图片质量级别（representation），默认 full
+    #[serde(default = "default_representation")]
+    pub representation: String,
+
     /// 文件保存路径
     #[serde(default = "default_save_path")]
     pub save_path: PathBuf,
@@ -58,11 +66,19 @@ fn default_rps() -> u32 {
 }
 
 fn default_concurrency() -> u32 {
-    32
+    64
+}
+
+fn default_max_failures() -> u32 {
+    5
+}
+
+fn default_representation() -> String {
+    "full".to_string()
 }
 
 fn default_save_path() -> PathBuf {
-    PathBuf::from("./downloads")
+    PathBuf::from("./ferrumena_downloads")
 }
 
 impl FerrumenaConfig {
@@ -74,7 +90,7 @@ impl FerrumenaConfig {
         envy::prefixed("FERRUMENA_")
             .from_env::<FerrumenaConfig>()
             .unwrap_or_else(|e| {
-                eprintln!("警告: 环境变量解析失败 ({})，将使用默认配置。", e);
+                println!("⚠️  环境变量解析失败 ({})，将使用默认配置。", e);
                 Self::default()
             })
     }
@@ -99,6 +115,12 @@ impl FerrumenaConfig {
         if let Some(c) = args.concurrency {
             self.concurrency = c;
         }
+        if let Some(m) = args.max_failures {
+            self.max_failures = m;
+        }
+        if let Some(ref representation) = args.representation {
+            self.representation = representation.clone();
+        }
         if let Some(ref p) = args.save_path {
             self.save_path = p.clone();
         }
@@ -109,6 +131,9 @@ impl FerrumenaConfig {
         }
         if self.base_url.trim().is_empty() {
             self.base_url = default_base_url();
+        }
+        if self.representation.trim().is_empty() {
+            self.representation = default_representation();
         }
 
         self
@@ -125,6 +150,8 @@ impl Default for FerrumenaConfig {
             cookie: String::new(),
             rps: default_rps(),
             concurrency: default_concurrency(),
+            max_failures: default_max_failures(),
+            representation: default_representation(),
             save_path: default_save_path(),
         }
     }
