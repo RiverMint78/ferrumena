@@ -83,7 +83,7 @@ ferrumena.exe [OPTIONS] --query <QUERY>
 #### 搜索和排序参数
 
 | 参数 | 短名 | 说明 | 默认值 | 取值范围 |
-|------|------|------|--------|---------|
+| --- | --- | --- | --- | --- |
 | `--query` | `-q` | 搜索句（Philomena 句法） | 无，必填 | 任意搜索表达式 |
 | `--limit` | `-l` | 本次运行的最大下载张数 | 全部结果 | 正整数 |
 | `--sort-field` | `-f` / `--sf` | 排序字段 | `id` | 见下节 |
@@ -93,7 +93,7 @@ ferrumena.exe [OPTIONS] --query <QUERY>
 #### 排序字段详解
 
 | 字段 | 说明 |
-|------|------|
+| --- | --- |
 | `id` | 图片 ID（默认） |
 | `random` | 随机排序（由 Ferrumena 随机产生种子） |
 | `updated-at` | 最后更新时间 |
@@ -114,7 +114,7 @@ ferrumena.exe [OPTIONS] --query <QUERY>
 #### 站点和网络参数
 
 | 参数 | 说明 | 默认值 |
-|------|------|--------|
+| --- | --- | --- |
 | `--base-url` | 目标站点 URL | `https://trixiebooru.org/` |
 | `--filter-id` | 过滤器 ID（内容分级控制） | `100073` |
 | `--user-agent` / `--ua` | 自定义 User-Agent | `Ferrumena/v版本号` |
@@ -128,7 +128,7 @@ ferrumena.exe [OPTIONS] --query <QUERY>
 #### 常见过滤器 ID
 
 | ID | 描述 | 用途 |
-|---|---|---|
+| --- | --- | --- |
 | `56027` | Everything（完全不过滤） | 下载所有内容 |
 | `100073` | Default（默认） | 默认内容过滤 |
 | 其他 | 自定义过滤 | 访问网站 `/filters` 查看 |
