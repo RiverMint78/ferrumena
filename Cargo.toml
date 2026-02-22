@@ -1,6 +1,6 @@
 [package]
 name = "ferrumena"
-version = "0.2.0-beta"
+version = "0.2.1-beta"
 edition = "2024"
 authors = ["RiverMint 67481978@qq.com"]
 description = "异步 Philomena 图片下载器 (An asynchronous image downloader for Philomena-based sites)"
