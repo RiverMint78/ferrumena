@@ -1,8 +1,8 @@
 # 🦄 Ferrumena
 
-**Ferrumena** 是一个高性能的异步 Philomena 图片批量下载器，使用 Rust 和 Tokio 构建。支持所有 Philomena-based 图片站点（Derpibooru、Ponerpics 等）。
+**Ferrumena** 是一个异步 Philomena 图片批量下载器，使用 Rust 和 Tokio 构建。支持所有 Philomena-based 图片站点（Derpibooru、Ponerpics 等）。
 
-![Rust](https://img.shields.io/badge/Rust-1.70+-orange?logo=rust)
+![Rust](https://img.shields.io/badge/Rust-1.90+-orange?logo=rust)
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue)
 ![Status](https://img.shields.io/badge/Status-Beta-yellow)
 
@@ -11,23 +11,23 @@
 - 🚀 **完全异步** - 基于 Tokio 的高并发下载引擎
 - 🌐 **多站点支持** - 适配所有 Philomena-based 网站
 - 🔍 **灵活搜索** - 支持 Philomena 搜索语法和无登录过滤器
-- ⚡ **智能限速** - 内置请求限速和并发控制，友好访问，且不使用API
+- ⚡ **智能限速** - 内置请求限速和并发控制，不使用API
 - 📊 **详细日志** - 完整的运行状态和错误提示
 
 ---
 
 ## 🚀 快速开始
 
-### 方式一：直接下载预编译版本（推荐新手）
+### 方式一：直接下载预编译版本
 
 1. 前往 [Releases 页面](https://github.com/RiverMint78/ferrumena/releases)
 2. 下载最新版本的 `.exe` 文件：
-   - `ferrumena-v0.2.0-beta-windows-x64.exe` - 性能优化版
-   - `ferrumena-v0.2.0-beta-windows-x64-small.exe` - 小体积版
+   - `ferrumena-v0.2.1-beta-windows-x64.exe` - 性能优化版
+   - `ferrumena-v0.2.1-beta-windows-x64-small.exe` - 小体积版
 
 3. 在下载后的目录打开 PowerShell/CMD，执行：
 
-   ```bash
+   ```PowerShell
    .\ferrumena.exe -q "搜索句" -l 10
    ```
 
@@ -77,16 +77,16 @@ ferrumena.exe --help
 ### 完整命令参数
 
 ```bash
-ferrumena.exe [OPTIONS]
+ferrumena.exe [OPTIONS] --query <QUERY>
 ```
 
 #### 搜索和排序参数
 
 | 参数 | 短名 | 说明 | 默认值 | 取值范围 |
 |------|------|------|--------|---------|
-| `--query` | `-q` | 搜索句（Philomena 句法） | `safe` | 任意搜索表达式 |
+| `--query` | `-q` | 搜索句（Philomena 句法） | 无，必填 | 任意搜索表达式 |
 | `--limit` | `-l` | 本次运行的最大下载张数 | 全部结果 | 正整数 |
-| `--sort-field` | `-f` / `--sf` | 排序字段 | `id` | 见下表 |
+| `--sort-field` | `-f` / `--sf` | 排序字段 | `id` | 见下节 |
 | `--sort-direction` | `-d` / `--sd` | 排序方向 | `desc` | `asc` / `desc` |
 | `--per-page` | `-p` | 每页图片数（推荐50） | `50` | 1-50 |
 
@@ -97,7 +97,6 @@ ferrumena.exe [OPTIONS]
 | `id` | 图片 ID（默认） |
 | `random` | 随机排序（由 Ferrumena 随机产生种子） |
 | `updated-at` | 最后更新时间 |
-| `creation-date` | 创建日期 |
 | `score` | 评分 |
 | `faves` | 收藏数 |
 | `upvotes` | 点赞数 |
@@ -114,15 +113,17 @@ ferrumena.exe [OPTIONS]
 
 #### 站点和网络参数
 
-| 参数 | 说明 | 默认值 | 来源优先级 |
-|------|------|--------|---------|
-| `--base-url` | 目标站点 URL | `https://trixiebooru.org/` | .env → 环境变量 → 命令行 |
-| `--filter-id` | 过滤器 ID（内容分级控制） | `100073` | .env → 环境变量 → 命令行 |
-| `--user-agent` / `--ua` | 自定义 User-Agent | `Ferrumena/v版本号` | .env → 环境变量 → 命令行 |
-| `--cookie` | Cookie 字符串（用于登录等） | 空 | .env → 环境变量 → 命令行 |
-| `--rps` / `-r` | 每秒请求数（RPS 限速） | `8` | .env → 环境变量 → 命令行 |
-| `--concurrency` / `-c` | 并发下载任务数 | `32` | .env → 环境变量 → 命令行 |
-| `--save-path` / `-o` | 文件保存路径 | `./downloads` | .env → 环境变量 → 命令行 |
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--base-url` | 目标站点 URL | `https://trixiebooru.org/` |
+| `--filter-id` | 过滤器 ID（内容分级控制） | `100073` |
+| `--user-agent` / `--ua` | 自定义 User-Agent | `Ferrumena/v版本号` |
+| `--cookie` | Cookie 字符串（用于登录等） | 空字符串 |
+| `--rps` / `-r` | 每秒请求数（RPS 限速） | `8` |
+| `--concurrency` / `-c` | 并发下载任务数 | `64` |
+| `--max-failures` | 页面抓取连续失败上限 | `5` |
+| `--representation` / `--rep` | 图片质量级别（representation） | `full` |
+| `--save-path` / `-o` | 文件保存路径 | `./ferrumena_downloads` |
 
 #### 常见过滤器 ID
 
@@ -135,26 +136,26 @@ ferrumena.exe [OPTIONS]
 ### 高级例子
 
 ```bash
-# 下载评分最高的200张图片
+# 下载评分最高的 200 张 pony 图片
 ferrumena.exe -q "pony" -l 200 -f score -d desc
 
 # 按随机顺序下载50张，高并发
-ferrumena.exe -q "cute" -l 50 -f random -c 64
+ferrumena.exe -q "cute" -l 50 -f random -c 128
 
-# 下载最新上传的图片（评分>=100）
+# 下载最新上传的图片（评分 >= 100）
 ferrumena.exe -q "pony, score.gte:100" -l 100 -f updated-at -d desc
 
-# 切换到 Derpibooru
-ferrumena.exe -q "safe, -grimdark, score.gte:500" \
+# 切换到 Derpibooru，并使用 Everything 过滤器
+ferrumena.exe -q "suggestive,-grimdark,score.gte:500" \
   --base-url "https://derpibooru.org/" \
   --filter-id 56027 \
   -l 100
 
-# 自定义并发和速率（快速下载）
-ferrumena.exe -q "pony" -l 500 -c 64 -r 16 -o "D:/my_downloads/"
+# 自定义并发和速率，快速下载所有高收藏图片
+ferrumena.exe -q "faves.gt:999" -c 128 -r 32 -o "D:/my_downloads/"
 
-# 使用特定用户代理和 Cookie（通过登录身份下载）
-ferrumena.exe -q "*" --user-agent "MyCustomUA/1.0" --cookie "user_remember_me=xxx; filter_id=xxx..." -l 50
+# 使用特定用户代理和 Cookie（通过登录身份下载自己的点赞图片）
+ferrumena.exe -q "my:upvotes" --user-agent "MyCustomUA/1.0" --cookie "user_remember_me=xxx; filter_id=xxx..." -l 50
 ```
 
 ---
@@ -175,13 +176,15 @@ Ferrumena 按以下顺序加载配置（后面的覆盖前面的）：
 ```bash
 # .env 中设置
 FERRUMENA_RPS=8
-FERRUMENA_CONCURRENCY=32
+FERRUMENA_CONCURRENCY=64
+FERRUMENA_MAX_FAILURES=5
+FERRUMENA_REPRESENTATION=full
 
 # 环境变量覆盖 .env
 export FERRUMENA_CONCURRENCY=64
 
 # 命令行参数覆盖一切
-ferrumena.exe -q "pony" -c 128  # 并发数为 128
+ferrumena.exe -q "pony" -l 500 -c 128  # 并发数为 128
 ```
 
 ### 环境变量和 .env 配置
@@ -219,19 +222,27 @@ FERRUMENA_USER_AGENT=
 # === 频率限制与并发 ===
 
 # 每秒请求数 (RPS)，默认: 8
-# 范围建议: 4-16（根据网站限制调整）
+# 范围建议: 4-32（根据网站限制调整）
 # 值越高请求越快，但可能被识别为爬虫和被限流
 FERRUMENA_RPS=8
 
-# 并发下载任务数，默认: 32
+# 并发下载任务数，默认: 64
 # 值越高下载越快，但会占用更多内存和网络带宽
-FERRUMENA_CONCURRENCY=32
+FERRUMENA_CONCURRENCY=64
+
+# 页面抓取连续失败上限，默认: 5
+# 连续失败达到上限后会停止抓取后续页面
+FERRUMENA_MAX_FAILURES=5
+
+# 图片质量级别（representation 键），默认: full
+# 常见值: full / tall / large / medium / small / thumb
+FERRUMENA_REPRESENTATION=full
 
 # === 存储配置 ===
 
-# 图片下载后的存放目录，默认: ./downloads
+# 图片下载后的存放目录，默认: ./ferrumena_downloads
 # 支持绝对路径和相对路径
-FERRUMENA_SAVE_PATH=./downloads
+FERRUMENA_SAVE_PATH=./ferrumena_downloads
 ```
 
 ---
@@ -262,14 +273,14 @@ ferrumena.exe -q "created_at.gte:1 month ago" -l 50
 
 ```dotenv
 # 或者通过命令行参数，请查看 --help
-FERRUMENA_RPS=16
-FERRUMENA_CONCURRENCY=64
+FERRUMENA_RPS=32
+FERRUMENA_CONCURRENCY=128
 ```
 
 然后执行：
 
 ```bash
-ferrumena.exe -q "pony" -l 1000
+ferrumena.exe -q "小马 AND safe" -l 5000
 ```
 
 ---
@@ -278,7 +289,7 @@ ferrumena.exe -q "pony" -l 1000
 
 ### Q：下载中断了怎么办？
 
-**A：** Ferrumena 不支持断点续传。重新运行相同命令会重新开始下载。
+**A：** Ferrumena 不支持断点续传。重新运行相同命令会重新开始下载。目标文件夹内，已经下载的图片会被跳过。
 
 ### Q：提示 "检测到 Cloudflare 防护" 怎么办？
 
@@ -294,6 +305,7 @@ ferrumena.exe -q "pony" -l 1000
 
 ```bash
 ferrumena.exe -q "mime_type:*gif"
+ferrumena.exe -q "animated:true" # 如果是想要所有动图
 ```
 
 ### Q：为什么下载很慢？
@@ -312,18 +324,21 @@ ferrumena.exe -q "mime_type:*gif"
 
 ## 📋 文件结构
 
-```
+```text
 ferrumena/
 ├── Cargo.toml              # 项目配置
 ├── src/
-│   ├── main.rs            # 主程序
-│   ├── api/               # API 客户端
-│   ├── cli/               # 命令行参数
-│   ├── config/            # 配置管理
-│   ├── downloader/        # 下载引擎
-│   └── error/             # 错误处理
+│   ├── main.rs             # 主程序入口
+│   ├── cli.rs              # 命令行参数
+│   ├── config.rs           # 配置加载与合并
+│   ├── downloader.rs       # 下载调度与并发执行
+│   ├── utils.rs            # 通用工具函数
+│   ├── error.rs            # 错误类型定义
+│   └── api/
+│       ├── client.rs       # 站点请求与页面解析
+│       └── models.rs       # 数据模型
 ├── .env.example           # 配置模板
-├── downloads/             # 默认下载文件夹
+├── ferrumena_downloads/   # 默认下载文件夹
 └── README.md             # 本文件
 ```
 
@@ -351,12 +366,3 @@ ferrumena/
 - [Reqwest](https://github.com/seanmonstar/reqwest) - HTTP 客户端
 - [Clap](https://github.com/clap-rs/clap) - 命令行参数解析
 - [Scraper](https://github.com/causal-agent/scraper) - HTML 解析
-
----
-
-## 📞 联系方式
-
-遇到问题？
-
-- 📧 Email: <67481978@qq.com>
-- 🐙 GitHub: [@RiverMint78](https://github.com/RiverMint78)
