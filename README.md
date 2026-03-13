@@ -318,7 +318,7 @@ ferrumena.exe -q "animated:true" # 如果是想要所有动图
 
 ### Q：支持 Linux/Mac 吗？
 
-**A：** 支持。从源码编译即可。
+**A：** 支持。也可以从源码编译。
 
 ---
 
