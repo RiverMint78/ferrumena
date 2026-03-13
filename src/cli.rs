@@ -63,7 +63,7 @@ pub struct Args {
     pub max_failures: Option<u32>,
 
     /// 图片质量级别（representation）
-    /// 例如 full / tall/ large / medium / small / thumb
+    /// 例如 full / tall / large / medium / small / thumb
     #[arg(long, visible_alias = "rep")]
     pub representation: Option<String>,
 
