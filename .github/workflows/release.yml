@@ -1,0 +1,87 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build for ${{ matrix.job.target }}
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - {
+              target: x86_64-pc-windows-msvc,
+              os: windows-latest,
+              binary: ferrumena.exe,
+            }
+          - {
+              target: x86_64-unknown-linux-musl,
+              os: ubuntu-latest,
+              binary: ferrumena,
+            }
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Tag Branch
+        shell: bash
+        run: |
+          git fetch origin main
+          if ! git branch -r --contains ${{ github.ref_name }} | grep -q "origin/main"; then
+            echo "ERROR: Tag ${{ github.ref_name }} not on main, Skipping..."
+            exit 1
+          fi
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.job.target }}
+
+      - name: Install Linux Dependencies
+        if: matrix.job.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.job.target }}
+
+      - name: Build Standard Release
+        run: cargo build --release --target ${{ matrix.job.target }}
+
+      - name: Build Small Release
+        run: cargo build --profile dist --target ${{ matrix.job.target }}
+
+      - name: Package Windows
+        if: matrix.job.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          Move-Item "target/${{ matrix.job.target }}/release/ferrumena.exe" "ferrumena-$tag-windows-x64.exe"
+          Move-Item "target/${{ matrix.job.target }}/dist/ferrumena.exe" "ferrumena-$tag-windows-x64-small.exe"
+
+      - name: Package Linux
+        if: matrix.job.os == 'ubuntu-latest'
+        run: |
+          tag="${{ github.ref_name }}"
+          mv "target/${{ matrix.job.target }}/release/ferrumena" "ferrumena-$tag-linux-x64"
+          mv "target/${{ matrix.job.target }}/dist/ferrumena" "ferrumena-$tag-linux-x64-small"
+
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            ferrumena-${{ github.ref_name }}-windows-x64.exe
+            ferrumena-${{ github.ref_name }}-windows-x64-small.exe
+            ferrumena-${{ github.ref_name }}-linux-x64
+            ferrumena-${{ github.ref_name }}-linux-x64-small
