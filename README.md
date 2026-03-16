@@ -11,7 +11,7 @@
 - 🚀 **完全异步** - 基于 Tokio 的高并发下载引擎
 - 🌐 **多站点支持** - 适配所有 Philomena-based 网站
 - 🔍 **灵活搜索** - 支持 Philomena 搜索语法和无登录过滤器
-- ⚡ **智能限速** - 内置请求限速和并发控制，不使用API
+- ⚡ **智能限速** - 内置请求限速和并发控制，不依赖官方 API
 - 📊 **详细日志** - 完整的运行状态和错误提示
 
 ---
@@ -27,7 +27,7 @@
 
 3. 在下载后的目录打开 PowerShell/CMD，执行：
 
-   ```PowerShell
+   ```powershell
    .\ferrumena.exe -q "搜索句" -l 10
    ```
 
@@ -49,15 +49,15 @@ cd ferrumena
 
 # 编译（开发版）
 cargo build
-./target/debug/ferrumena.exe -q "搜索句"
+./target/debug/ferrumena -q "搜索句"
 
 # 编译（性能最优）
 cargo build --release
-./target/release/ferrumena.exe -q "搜索句"
+./target/release/ferrumena -q "搜索句"
 
 # 编译（小体积版）
 cargo build --profile dist
-./target/dist/ferrumena.exe -q "搜索句"
+./target/dist/ferrumena -q "搜索句"
 ```
 
 ---
@@ -68,16 +68,16 @@ cargo build --profile dist
 
 ```bash
 # 搜索并下载前10张图片
-ferrumena.exe -q "pony" -l 10
+ferrumena -q "pony" -l 10
 
 # 查看完整命令行帮助
-ferrumena.exe --help
+ferrumena --help
 ```
 
 ### 完整命令参数
 
 ```bash
-ferrumena.exe [OPTIONS] --query <QUERY>
+ferrumena [OPTIONS] --query <QUERY>
 ```
 
 #### 搜索和排序参数
@@ -137,25 +137,25 @@ ferrumena.exe [OPTIONS] --query <QUERY>
 
 ```bash
 # 下载评分最高的 200 张 pony 图片
-ferrumena.exe -q "pony" -l 200 -f score -d desc
+ferrumena -q "pony" -l 200 -f score -d desc
 
 # 按随机顺序下载50张，高并发
-ferrumena.exe -q "cute" -l 50 -f random -c 128
+ferrumena -q "cute" -l 50 -f random -c 128
 
 # 下载最新上传的图片（评分 >= 100）
-ferrumena.exe -q "pony, score.gte:100" -l 100 -f updated-at -d desc
+ferrumena -q "pony, score.gte:100" -l 100 -f updated-at -d desc
 
 # 切换到 Derpibooru，并使用 Everything 过滤器
-ferrumena.exe -q "suggestive,-grimdark,score.gte:500" \
+ferrumena -q "suggestive,-grimdark,score.gte:500" \
   --base-url "https://derpibooru.org/" \
   --filter-id 56027 \
   -l 100
 
 # 自定义并发和速率，快速下载所有高收藏图片
-ferrumena.exe -q "faves.gt:999" -c 128 -r 32 -o "D:/my_downloads/"
+ferrumena -q "faves.gt:999" -c 128 -r 32 -o "D:/my_downloads/"
 
 # 使用特定用户代理和 Cookie（通过登录身份下载自己的点赞图片）
-ferrumena.exe -q "my:upvotes" --user-agent "MyCustomUA/1.0" --cookie "user_remember_me=xxx; filter_id=xxx..." -l 50
+ferrumena -q "my:upvotes" --user-agent "MyCustomUA/1.0" --cookie "user_remember_me=xxx; filter_id=xxx..." -l 50
 ```
 
 ---
@@ -184,7 +184,7 @@ FERRUMENA_REPRESENTATION=full
 export FERRUMENA_CONCURRENCY=64
 
 # 命令行参数覆盖一切
-ferrumena.exe -q "pony" -l 500 -c 128  # 并发数为 128
+ferrumena -q "pony" -l 500 -c 128  # 并发数为 128
 ```
 
 ### 环境变量和 .env 配置
@@ -254,7 +254,7 @@ FERRUMENA_SAVE_PATH=./ferrumena_downloads
 ### 例子 1：备份高分作品
 
 ```bash
-ferrumena.exe -q "score.gte:500, pony" -l 100 -f score -d desc
+ferrumena -q "score.gte:500, pony" -l 100 -f score -d desc
 ```
 
 下载评分在 500 以上、带有 pony 标签的前 100 张图片。
@@ -262,7 +262,7 @@ ferrumena.exe -q "score.gte:500, pony" -l 100 -f score -d desc
 ### 例子 2：收集最新上传
 
 ```bash
-ferrumena.exe -q "created_at.gte:1 month ago" -l 50
+ferrumena -q "created_at.gte:1 month ago" -l 50
 ```
 
 下载最近一个月上传的前 50 张图片。
@@ -280,7 +280,7 @@ FERRUMENA_CONCURRENCY=128
 然后执行：
 
 ```bash
-ferrumena.exe -q "小马 AND safe" -l 5000
+ferrumena -q "小马 AND safe" -l 5000
 ```
 
 ---
@@ -289,7 +289,7 @@ ferrumena.exe -q "小马 AND safe" -l 5000
 
 ### Q：下载中断了怎么办？
 
-**A：** Ferrumena 不支持断点续传。重新运行相同命令会重新开始下载。目标文件夹内，已经下载的图片会被跳过。
+**A：** Ferrumena 不支持断点续传。但如果重新运行相同的命令，Ferrumena 会自动跳过目标文件夹中已经存在的图片，只下载缺失的部分。
 
 ### Q：提示 "检测到 Cloudflare 防护" 怎么办？
 
@@ -304,8 +304,8 @@ ferrumena.exe -q "小马 AND safe" -l 5000
 **A：** 某些 Philomena 站点支持搜索语法过滤，例如：
 
 ```bash
-ferrumena.exe -q "mime_type:*gif"
-ferrumena.exe -q "animated:true" # 如果是想要所有动图
+ferrumena -q "mime_type:*gif"
+ferrumena -q "animated:true" # 如果是想要所有动图
 ```
 
 ### Q：为什么下载很慢？
