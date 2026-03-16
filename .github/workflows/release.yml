@@ -82,8 +82,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          files: |
-            ferrumena-${{ github.ref_name }}-windows-x64.exe
-            ferrumena-${{ github.ref_name }}-windows-x64-small.exe
-            ferrumena-${{ github.ref_name }}-linux-x64
-            ferrumena-${{ github.ref_name }}-linux-x64-small
+          files: ferrumena-${{ github.ref_name }}-*
