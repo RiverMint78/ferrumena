@@ -1,22 +1,21 @@
-# 🦄 Ferrumena
+# Ferrumena
 
 **Ferrumena** 是一个异步 Philomena 图片批量下载器，使用 Rust 和 Tokio 构建。支持所有 Philomena-based 图片站点（Derpibooru、Ponerpics 等）。
 
 ![Rust](https://img.shields.io/badge/Rust-1.90+-orange?logo=rust)
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue)
-![Status](https://img.shields.io/badge/Status-Beta-yellow)
 
-## ✨ 主要特性
+## 主要特性
 
-- 🚀 **完全异步** - 基于 Tokio 的高并发下载引擎
-- 🌐 **多站点支持** - 适配所有 Philomena-based 网站
-- 🔍 **灵活搜索** - 支持 Philomena 搜索语法和无登录过滤器
-- ⚡ **智能限速** - 内置请求限速和并发控制，不依赖官方 API
-- 📊 **详细日志** - 完整的运行状态和错误提示
+- **完全异步** - 基于 Tokio 的高并发下载引擎
+- **多站点支持** - 适配所有 Philomena-based 网站
+- **灵活搜索** - 支持 Philomena 搜索语法和无登录过滤器
+- **智能限速** - 内置请求限速和并发控制，不依赖官方 API
+- **详细日志** - 完整的运行状态和错误提示
 
 ---
 
-## 🚀 快速开始
+## 快速开始
 
 ### 方式一：直接下载预编译版本
 
@@ -47,22 +46,18 @@
 git clone https://github.com/RiverMint78/ferrumena.git
 cd ferrumena
 
-# 编译（开发版）
-cargo build
-./target/debug/ferrumena -q "搜索句"
-
-# 编译（性能最优）
+# 编译
 cargo build --release
 ./target/release/ferrumena -q "搜索句"
 
-# 编译（小体积版）
+# 编译（小体积）
 cargo build --profile dist
 ./target/dist/ferrumena -q "搜索句"
 ```
 
 ---
 
-## 📖 使用教程
+## 使用教程
 
 ### 基础用法
 
@@ -160,7 +155,7 @@ ferrumena -q "my:upvotes" --user-agent "MyCustomUA/1.0" --cookie "user_remember_
 
 ---
 
-## ⚙️ 配置文件
+## 配置文件
 
 ### 配置加载优先级
 
@@ -247,7 +242,7 @@ FERRUMENA_SAVE_PATH=./ferrumena_downloads
 
 ---
 
-## 📊 实际使用例子
+## 实际用例
 
 > 强烈推荐查看 <https://trixiebooru.org/pages/search_syntax> 了解全部搜索句法
 
@@ -285,7 +280,7 @@ ferrumena -q "小马 AND safe" -l 5000
 
 ---
 
-## ⚠️ 常见问题
+## 常见问题
 
 ### Q：下载中断了怎么办？
 
@@ -322,7 +317,7 @@ ferrumena -q "animated:true" # 如果是想要所有动图
 
 ---
 
-## 📋 文件结构
+## 文件结构
 
 ```text
 ferrumena/
@@ -341,28 +336,3 @@ ferrumena/
 ├── ferrumena_downloads/   # 默认下载文件夹
 └── README.md             # 本文件
 ```
-
----
-
-## 🤝 贡献
-
-本项目为个人练习，暂时不接受PR。
-
-欢迎提出任何问题。
-
----
-
-## 📜 许可证
-
-本项目采用 **Apache License 2.0** 许可证。详见 [LICENSE](LICENSE) 文件。
-
----
-
-## ⭐ 致谢
-
-感谢以下项目的支持：
-
-- [Tokio](https://tokio.rs/) - 异步运行时
-- [Reqwest](https://github.com/seanmonstar/reqwest) - HTTP 客户端
-- [Clap](https://github.com/clap-rs/clap) - 命令行参数解析
-- [Scraper](https://github.com/causal-agent/scraper) - HTML 解析
